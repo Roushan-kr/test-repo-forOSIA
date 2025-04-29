@@ -1,0 +1,10 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Community Directory"
+  navbar:
+    left:
+      - text: "Communities"
+        file: communities.qmd

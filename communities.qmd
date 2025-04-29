@@ -1,0 +1,23 @@
+---
+title: Community Directory
+format: html
+execute:
+  echo: false
+---
+
+```{r}
+library(reactable)
+library(htmltools)
+communities <- read.csv("communities.csv")
+reactable(
+  communities,
+  filterable = TRUE,
+  defaultPageSize = 10,
+  bordered = TRUE,
+  highlight = TRUE,
+  columns = list(
+    Website = colDef(cell = JS("function(cellInfo) {
+      return `<a href='${cellInfo.value}' target='_blank'>${cellInfo.value}</a>`;
+    }"))
+  )
+)
