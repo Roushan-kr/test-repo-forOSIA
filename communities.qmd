@@ -1,6 +1,5 @@
 ---
-title: Community Directory
-format: html
+title: Communities
 execute:
   echo: false
 ---
@@ -8,16 +7,74 @@ execute:
 ```{r}
 library(reactable)
 library(htmltools)
+library(glue)
+library(purrr)
+
+# Load data
 communities <- read.csv("communities.csv")
+
+# Filter dropdown input
+filter_fct <- function(values, name) {
+  tags$select(
+    tags$option(value = "", "All"),
+    map(unique(values), tags$option),
+    onchange = glue("
+      Reactable.setFilter(
+        'communities-tbl', 
+        '{name}', 
+        event.target.value
+      )
+    "),
+    style = "width: 100%; height: 28px;"
+  )
+}
+
+# JavaScript for exact match filtering
+exact_match_fct <- function() {
+  JS("
+  (rows, columnId, filterValue) => {
+    if (!filterValue) return rows;
+    return rows.filter(row => row.values[columnId] === filterValue);
+  }
+")
+}
+
+# Create reactable
 reactable(
   communities,
-  filterable = TRUE,
-  defaultPageSize = 10,
-  bordered = TRUE,
-  highlight = TRUE,
   columns = list(
-    Website = colDef(cell = JS("function(cellInfo) {
-      return `<a href='${cellInfo.value}' target='_blank'>${cellInfo.value}</a>`;
-    }"))
-  )
+    Community.name = colDef(name = "Community name"),
+    Description = colDef(name = "Description"),
+    Website = colDef(
+      name = "Website",
+      cell = function(value) {
+        htmltools::HTML(sprintf("<a href='%s' target='_blank'>%s</a>", value, value))
+      },
+      html = TRUE
+    ),
+   Region = colDef(
+  name = "Region",
+  filterInput = filter_fct,
+    filterMethod = JS("
+      (rows, columnId, filterValue) => {
+        if (!filterValue) return rows;
+        return rows.filter(row => row.values[columnId] === filterValue);
+      }
+    ")
+  ),
+  Theme = colDef(
+  name = "Theme",
+  filterInput = filter_fct,
+  filterMethod = JS("
+    (rows, columnId, filterValue) => {
+      if (!filterValue) return rows;
+      return rows.filter(row => row.values[columnId] === filterValue);
+    }
+  ")
 )
+  ),
+  filterable = TRUE,
+  defaultPageSize = 20,
+  elementId = "communities-tbl"
+)
+```
